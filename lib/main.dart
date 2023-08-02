@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:demo_firebase_chat/auth/auth_screen.dart';
+import 'package:demo_firebase_chat/models/auth_models.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 import 'firebase_options.dart';
 import 'home.dart';
@@ -18,7 +21,9 @@ class MyApp extends StatelessWidget {
   Future<Widget> userSignIn() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      return const MyHomePage(title: 'chatApp');
+      DocumentSnapshot userData = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      UsersModel usersModel = UsersModel.fromJson(userData);
+      return  MyHomePage(usersModel: usersModel,);
     } else {
       return const AuthScreen();
     }
@@ -26,7 +31,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -34,10 +40,9 @@ class MyApp extends StatelessWidget {
       ),
       home:FutureBuilder(
         future: userSignIn(),
-        builder: (context, snapshot) {
+        builder: (context,AsyncSnapshot<Widget> snapshot) {
           if (snapshot.hasData) {
-            // return const MyHomePage(title: '');
-            return const AuthScreen();
+            return  snapshot.data!;
           } else {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),

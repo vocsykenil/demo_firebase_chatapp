@@ -1,24 +1,31 @@
+import 'package:demo_firebase_chat/auth/auth_screen.dart';
+import 'package:demo_firebase_chat/constant.dart';
+import 'package:demo_firebase_chat/models/auth_models.dart';
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-
-
-  final String title;
+ final UsersModel? usersModel;
+   const MyHomePage({super.key, this.usersModel});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  @override
+  void initState() {
+    super.initState();
+    print("user Id :: $userId");
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: const Text("homePage"),
+        actions: [IconButton(onPressed: () => Authentication.signOut(context: context), icon: const Icon(Icons.logout))],
+        leading: const SizedBox(),
       ),
       body: Center(
         child: Column(
