@@ -1,7 +1,10 @@
 import 'package:demo_firebase_chat/auth/auth_screen.dart';
+import 'package:demo_firebase_chat/chat_screens/search_userScreen.dart';
 import 'package:demo_firebase_chat/constant.dart';
+import 'package:demo_firebase_chat/main.dart';
 import 'package:demo_firebase_chat/models/auth_models.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class MyHomePage extends StatefulWidget {
  final UsersModel? usersModel;
@@ -15,12 +18,15 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    print("user Id :: $userId");
+    print("user Id :: ${getPreference.read(PrefConst.userId)}");
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(floatingActionButton: FloatingActionButton(onPressed: () {
+      Get.to(()=>SearchUserScreen(usersModel: widget.usersModel));
+    },child: const Icon(Icons.search)),
+      
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text("homePage"),

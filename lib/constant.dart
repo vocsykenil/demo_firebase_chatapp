@@ -1,1 +1,3 @@
-String userId = '';
+class PrefConst{
+ static String userId = 'userId';
+}

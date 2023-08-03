@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:demo_firebase_chat/constant.dart';
 import 'package:demo_firebase_chat/home.dart';
+import 'package:demo_firebase_chat/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -16,53 +16,6 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  // Future<void> _handleSignIn() async {
-  //   try {
-  //     GoogleSignInAccount? account = await _googleSignIn.signIn();
-  //     if (account != null) {
-  //       // Successfully signed in, you can now access the user information
-  //       print("User Email: ${account.email}");
-  //       print("User Display Name: ${account.displayName}");
-  //       print("User Photo URL: ${account.photoUrl}");
-  //       final GoogleSignInAuthentication googleSignInAuthentication = await account.authentication;
-  //       final AuthCredential authCredential =
-  //           GoogleAuthProvider.credential(idToken: googleSignInAuthentication.idToken, accessToken: googleSignInAuthentication.accessToken);
-  //
-  //       // Getting users credential
-  //       UserCredential result = await auth.signInWithCredential(authCredential);
-  //       User? user = result.user;
-  //       DocumentSnapshot userExist = await firebaseFirestore.collection('users').doc(user?.uid).get();
-  //       if(userExist.exists){
-  //         print("user already exist in database");
-  //       }else{
-  //         await firebaseFirestore.collection('users').doc(user?.uid).set({
-  //           'email':account.email,
-  //           'image':account.photoUrl,
-  //           'name':account.displayName,
-  //           'uid':user?.uid,
-  //           'timestamp':DateTime.now(),
-  //         });
-  //
-  //         Navigator.push(context, MaterialPageRoute(builder: (context) => MyHomePage(),));
-  //       }
-  //     }
-  //     //   if(user != null){
-  //     //
-  //     //
-  //     //   // print("uid :: ${user?.uid}");
-  //     // } else {
-  //     //   // User canceled the sign-in process
-  //     //   print("Sign-in process canceled.");
-  //     // }
-  //   } catch (error) {
-  //     // Handle the error
-  //     print("Error while signing in: $error");
-  //   }
-  //   setState(() {
-  //
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,12 +23,18 @@ class _AuthScreenState extends State<AuthScreen> {
         title: const Text('Login'),
       ),
       body: Center(
-        child: ElevatedButton.icon(
-            onPressed: () {
-              Authentication.signInWithGoogle(context: context);
-            },
-            icon: const Icon(Icons.mail),
-            label: const Text('Sign In With google')),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.network("https://play-lh.googleusercontent.com/cF_oWC9Io_I9smEBhjhUHkOO6vX5wMbZJgFpGny4MkMMtz25iIJEh2wASdbbEN7jseAx=w240-h480-rw"),
+            ElevatedButton.icon(
+                onPressed: () {
+                  Authentication.signInWithGoogle(context: context);
+                },
+                icon: const Icon(Icons.mail),
+                label: const Text('Sign In With google')),
+          ],
+        ),
       ),
     );
   }
@@ -105,14 +64,16 @@ class Authentication {
         final UserCredential userCredential = await auth.signInWithCredential(credential);
 
         user = userCredential.user;
-        if(userId.isEmpty){
-          userId = user?.uid??"";
+        if(user?.uid != null){
+          getPreference.write(PrefConst.userId, user?.uid);
         }
         DocumentSnapshot userExist = await firebaseFirestore.collection('users').doc(user?.uid).get();
         if (userExist.exists) {
-          print("user already exist in database");
+          if (kDebugMode) {
+            print("user already exist in database");
+          }
         } else {
-          await firebaseFirestore.collection('users').doc(user?.uid).set({
+           await firebaseFirestore.collection('users').doc(user?.uid).set({
             'email': googleSignInAccount.email,
             'image': googleSignInAccount.photoUrl,
             'name': googleSignInAccount.displayName,
@@ -120,7 +81,7 @@ class Authentication {
             'timestamp': DateTime.now(),
           });
         }
-       Get.to(()=>const MyHomePage());
+       Get.to(()=> MyHomePage());
       } on FirebaseAuthException catch (e) {
         if (e.code == 'account-exists-with-different-credential') {
           // handle the error here
@@ -144,9 +105,7 @@ class Authentication {
         await googleSignIn.signOut();
       }
       await FirebaseAuth.instance.signOut();
-      if(userId.isNotEmpty){
-        userId = '';
-      }
+        getPreference.write(PrefConst.userId, '');
       Get.to(() => const AuthScreen());
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -163,7 +122,7 @@ SnackBar customSnackBar({required String content}) {
     backgroundColor: Colors.black,
     content: Text(
       content,
-      style: TextStyle(color: Colors.redAccent, letterSpacing: 0.5),
+      style: const TextStyle(color: Colors.redAccent, letterSpacing: 0.5),
     ),
   );
 }
