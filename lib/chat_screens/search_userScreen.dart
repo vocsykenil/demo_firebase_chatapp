@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:demo_firebase_chat/auth/auth_screen.dart';
+import 'package:demo_firebase_chat/chat_screens/chat_screen.dart';
 import 'package:demo_firebase_chat/models/auth_models.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 
 class SearchUserScreen extends StatefulWidget {
@@ -12,7 +14,9 @@ class SearchUserScreen extends StatefulWidget {
   @override
   State<SearchUserScreen> createState() => _SearchUserScreenState();
 }
+
 RxList<Map> searchResult = <Map>[].obs;
+
 class _SearchUserScreenState extends State<SearchUserScreen> {
   final searchController = TextEditingController();
   RxBool isLoading = false.obs;
@@ -70,11 +74,21 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             shrinkWrap: true,
             itemCount: searchResult.length,
             itemBuilder: (context, index) {
-              return ListTile(
-                leading: CircleAvatar(backgroundImage: NetworkImage(searchResult[index]['image'])),
-                title: Text(searchResult[index]['name']),
-                subtitle: Text(searchResult[index]['email']),
-                trailing: IconButton(onPressed: (){}, icon: const Icon(Icons.chat)),
+              return GestureDetector(
+                onTap: () {
+                  Get.to(() => ChatScreen(
+                        currentUser: widget.usersModel,
+                        friendId: searchResult[index]['uid'],
+                        friendImage: searchResult[index]['image'],
+                        friendName: searchResult[index]['name'],
+                      ));
+                },
+                child: ListTile(
+                  leading: CircleAvatar(backgroundImage: NetworkImage(searchResult[index]['image'])),
+                  title: Text(searchResult[index]['name']),
+                  subtitle: Text(searchResult[index]['email']),
+                  trailing: IconButton(onPressed: () {}, icon: const Icon(Icons.chat)),
+                ),
               );
             },
           )
