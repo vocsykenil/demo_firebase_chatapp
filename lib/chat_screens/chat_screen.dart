@@ -1,16 +1,37 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+
+
+
 import 'package:demo_firebase_chat/models/auth_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   final UsersModel? currentUser;
   final String? friendName;
   final String? friendId;
   final String? friendImage;
 
-   ChatScreen({super.key, this.currentUser, this.friendName, this.friendId, this.friendImage});
+   const ChatScreen({super.key, this.currentUser, this.friendName, this.friendId, this.friendImage});
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
   final chatController = TextEditingController();
+  final IO.Socket _socket = IO.io('http://localhost:3000',IO.OptionBuilder().setTransports(['websocket']).build());
+
+   _connectSocket(){
+     _socket.onConnect((data) => print('Connection established'));
+     _socket.onConnectError((data) => print('Connection error :: $data'));
+     _socket.onDisconnect((data) => print('Socket IO Connection disconnect'));
+   }
+   @override
+  void initState() {
+     _connectSocket();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,19 +51,19 @@ class ChatScreen extends StatelessWidget {
                 if (kDebugMode) {
                   print('Send');
                 }
-                String? massages = chatController.text;
-                chatController.clear();
-                await FirebaseFirestore.instance.collection('users').doc(currentUser?.uid).collection('massages').doc(friendId).collection('chats').add({
-                  "senderId":currentUser?.uid,
-                  "receiverId":friendId,
-                  "massages":massages,
-                  "type":"text",
-                  "date":DateTime.now()
-                }).then((value) {
-                  FirebaseFirestore.instance.collection('users').doc(currentUser?.uid).collection('massages').doc(friendId).set({
-                    'last_msg': massages
-                  });
-                });
+                // String? massages = chatController.text;
+                // chatController.clear();
+                // await FirebaseFirestore.instance.collection('users').doc(currentUser?.uid).collection('massages').doc(friendId).collection('chats').add({
+                //   "senderId":currentUser?.uid,
+                //   "receiverId":friendId,
+                //   "massages":massages,
+                //   "type":"text",
+                //   "date":DateTime.now()
+                // }).then((value) {
+                //   FirebaseFirestore.instance.collection('users').doc(currentUser?.uid).collection('massages').doc(friendId).set({
+                //     'last_msg': massages
+                //   });
+                // });
               },
               icon: Icon(Icons.send, color: Colors.tealAccent.shade700))
         ]),
@@ -57,12 +78,12 @@ class ChatScreen extends StatelessWidget {
                   height: 50,
                   width: 50,
                   child: ClipRRect(
-                    child: Image.network(friendImage ?? ""),
+                    child: Image.network(widget.friendImage ?? ""),
                   )),
               const SizedBox(
                 width: 5,
               ),
-              Text(friendName ?? "")
+              Text(widget.friendName ?? "")
             ],
           )),
     );
